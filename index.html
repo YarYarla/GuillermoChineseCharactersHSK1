@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HSK 1 汉字闪卡 · 宽版</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px;
+    background:linear-gradient(135deg,#1e3c72 0%,#2a5298 45%,#6a3093 100%);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    color:#fff;
+  }
+
+  .app{
+    width:min(100%,680px);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    align-items:center;
+  }
+
+  header{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  h1{font-size:16px;font-weight:600;letter-spacing:.5px;opacity:.95;}
+  .counter{font-size:14px;opacity:.8;font-variant-numeric:tabular-nums;}
+
+  .card-wrap{width:100%;perspective:1600px;}
+  .card{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+
+  .face{
+    position:absolute;
+    inset:0;
+    border-radius:22px;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    color:#1f2937;
+    box-shadow:0 16px 36px rgba(0,0,0,.3);
+    overflow:hidden;
+  }
+
+  .front{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(160deg,#ffffff,#f1f5f9);
+  }
+  .hanzi{
+    font-size:clamp(78px,14vw,140px);
+    line-height:1;
+    font-weight:700;
+    color:#1e3c72;
+    font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif;
+    text-shadow:0 5px 14px rgba(30,60,114,.15);
+    user-select:none;
+  }
+  .hint{
+    position:absolute;
+    bottom:14px;
+    left:0;right:0;
+    text-align:center;
+    font-size:12px;
+    color:#94a3b8;
+    letter-spacing:.5px;
+  }
+
+  .back{
+    display:grid;
+    grid-template-columns:1fr 1.5fr;
+    align-items:center;
+    gap:clamp(16px,3vw,36px);
+    padding:clamp(18px,3vw,34px) clamp(22px,3.5vw,44px);
+    background:linear-gradient(160deg,#ffffff,#eef2ff);
+    transform:rotateY(180deg);
+  }
+  .back-left{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding-right:clamp(10px,2vw,26px);
+    border-right:1px solid #e2e8f0;
+    height:100%;
+  }
+  .back-hanzi{
+    font-size:clamp(42px,7vw,74px);
+    line-height:1;
+    font-weight:700;
+    color:#1e3c72;
+    font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif;
+  }
+  .back-pinyin{
+    font-size:clamp(13px,1.6vw,17px);
+    letter-spacing:1px;
+    color:#64748b;
+  }
+
+  .back-right{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:left;
+  }
+  .meaning{
+    font-size:clamp(17px,2.4vw,24px);
+    font-weight:700;
+    color:#1e3c72;
+    line-height:1.3;
+  }
+  .divider{
+    width:38px;height:3px;border-radius:99px;
+    background:linear-gradient(90deg,#ffd166,#ff6b6b);
+    margin:12px 0;
+  }
+  .ex-zh{font-size:clamp(14px,1.8vw,18px);color:#334155;line-height:1.55;}
+  .ex-py{margin-top:6px;font-size:clamp(11px,1.3vw,13px);color:#94a3b8;line-height:1.55;}
+
+  .controls{width:100%;display:flex;gap:10px;}
+  button{
+    flex:1;
+    padding:12px 8px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    font-size:14px;
+    font-family:inherit;
+    cursor:pointer;
+    transition:background .2s,transform .1s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button:hover{background:rgba(255,255,255,.24);}
+  button:active{transform:scale(.97);}
+  .controls.minor{max-width:360px;}
+  .controls.minor button{font-size:13px;padding:10px 8px;opacity:.9;}
+
+  .progress{
+    width:100%;height:5px;border-radius:99px;
+    background:rgba(255,255,255,.2);
+    overflow:hidden;
+  }
+  .bar{
+    height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#ffd166,#ff6b6b);
+    transition:width .3s ease;
+  }
+
+  @media (max-width:560px){
+    .card{aspect-ratio:4/5;}
+    .hanzi{font-size:clamp(88px,28vw,150px);}
+    .back{
+      grid-template-columns:1fr;
+      gap:10px;
+      padding:20px 18px;
+      text-align:center;
+    }
+    .back-left{
+      border-right:none;
+      padding-right:0;
+      gap:2px;
+    }
+    .back-right{align-items:center;text-align:center;}
+    .divider{margin:9px 0;}
+    .back-hanzi{font-size:clamp(38px,12vw,56px);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>HSK 1 汉字闪卡</h1>
+    <span class="counter" id="counter">1 / 71</span>
+  </header>
+
+  <div class="card-wrap">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="hanzi" id="hanzi">我</div>
+        <div class="hint">点击卡片翻转 · 空格键</div>
+      </div>
+      <div class="face back">
+        <div class="back-left">
+          <div class="back-hanzi" id="backHanzi">我</div>
+          <div class="back-pinyin" id="backPinyin">wǒ</div>
+        </div>
+        <div class="back-right">
+          <div class="meaning" id="meaning">I, me</div>
+          <div class="divider"></div>
+          <div class="ex-zh" id="exZh"></div>
+          <div class="ex-py" id="exPy"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn">← 上一个</button>
+    <button id="flipBtn">翻转</button>
+    <button id="nextBtn">下一个 →</button>
+  </div>
+
+  <div class="controls minor">
+    <button id="shuffleBtn">🔀 打乱顺序</button>
+    <button id="soundBtn">🔊 朗读汉字</button>
+  </div>
+
+  <div class="progress"><div class="bar" id="bar"></div></div>
+</div>
+
+<script>
+/* ================= 数据：71 个 HSK 1 汉字（已去重） ================= */
+const DATA = [
+  /* ---- 原 50 个 ---- */
+  {h:'我', p:'wǒ',      m:'I, me',              e:'我是学生。',           ep:'Wǒ shì xuésheng.'},
+  {h:'你', p:'nǐ',      m:'you',                e:'你好！',               ep:'Nǐ hǎo!'},
+  {h:'他', p:'tā',      m:'he, him',            e:'他是我朋友。',         ep:'Tā shì wǒ péngyou.'},
+  {h:'她', p:'tā',      m:'she, her',           e:'她很忙。',             ep:'Tā hěn máng.'},
+  {h:'们', p:'men',     m:'plural suffix',      e:'我们是朋友。',         ep:'Wǒmen shì péngyou.'},
+  {h:'好', p:'hǎo',     m:'good, well',         e:'我很好，谢谢。',       ep:'Wǒ hěn hǎo, xièxie.'},
+  {h:'是', p:'shì',     m:'to be',              e:'他是老师。',           ep:'Tā shì lǎoshī.'},
+  {h:'不', p:'bù',      m:'no, not',            e:'我不喝茶。',           ep:'Wǒ bù hē chá.'},
+  {h:'人', p:'rén',     m:'person, people',     e:'他是中国人。',         ep:'Tā shì Zhōngguó rén.'},
+  {h:'大', p:'dà',      m:'big, large',         e:'北京很大。',           ep:'Běijīng hěn dà.'},
+  {h:'小', p:'xiǎo',    m:'small, little',      e:'这个很小。',           ep:'Zhège hěn xiǎo.'},
+  {h:'中', p:'zhōng',   m:'middle; China',      e:'我在中国。',           ep:'Wǒ zài Zhōngguó.'},
+  {h:'国', p:'guó',     m:'country',            e:'中国很大。',           ep:'Zhōngguó hěn dà.'},
+  {h:'上', p:'shàng',   m:'up, above, on',      e:'书在桌子上。',         ep:'Shū zài zhuōzi shàng.'},
+  {h:'下', p:'xià',     m:'down, below, under', e:'猫在椅子下。',         ep:'Māo zài yǐzi xià.'},
+  {h:'天', p:'tiān',    m:'day, sky',           e:'今天天气很好。',       ep:'Jīntiān tiānqì hěn hǎo.'},
+  {h:'来', p:'lái',     m:'to come',            e:'他来了。',             ep:'Tā lái le.'},
+  {h:'去', p:'qù',      m:'to go',              e:'我去学校。',           ep:'Wǒ qù xuéxiào.'},
+  {h:'有', p:'yǒu',     m:'to have, there is',  e:'我有一个哥哥。',       ep:'Wǒ yǒu yí gè gēge.'},
+  {h:'没', p:'méi',     m:'not have',           e:'我没有钱。',           ep:'Wǒ méiyǒu qián.'},
+  {h:'在', p:'zài',     m:'at, in, to be in',   e:'我在家。',             ep:'Wǒ zài jiā.'},
+  {h:'家', p:'jiā',     m:'home, family',       e:'我家有四个人。',       ep:'Wǒ jiā yǒu sì gè rén.'},
+  {h:'学', p:'xué',     m:'to study, learn',    e:'我学汉语。',           ep:'Wǒ xué Hànyǔ.'},
+  {h:'生', p:'shēng',   m:'to be born; student',e:'他是学生。',           ep:'Tā shì xuésheng.'},
+  {h:'老', p:'lǎo',     m:'old',                e:'老师很好。',           ep:'Lǎoshī hěn hǎo.'},
+  {h:'师', p:'shī',     m:'teacher',            e:'她是我的老师。',       ep:'Tā shì wǒ de lǎoshī.'},
+  {h:'吗', p:'ma',      m:'question particle',  e:'你好吗？',             ep:'Nǐ hǎo ma?'},
+  {h:'的', p:'de',      m:'possessive particle',e:'这是我的书。',         ep:'Zhè shì wǒ de shū.'},
+  {h:'了', p:'le',      m:'aspect particle',    e:'我吃饭了。',           ep:'Wǒ chīfàn le.'},
+  {h:'个', p:'gè',      m:'general measure word',e:'我有一个朋友。',      ep:'Wǒ yǒu yí gè péngyou.'},
+  {h:'水', p:'shuǐ',    m:'water',              e:'我要喝水。',           ep:'Wǒ yào hē shuǐ.'},
+  {h:'饭', p:'fàn',     m:'meal, cooked rice',  e:'我们吃饭吧。',         ep:'Wǒmen chīfàn ba.'},
+  {h:'茶', p:'chá',     m:'tea',                e:'我喝茶。',             ep:'Wǒ hē chá.'},
+  {h:'菜', p:'cài',     m:'dish, vegetable',    e:'这个菜很好吃。',       ep:'Zhège cài hěn hǎochī.'},
+  {h:'果', p:'guǒ',     m:'fruit',              e:'我喜欢苹果。',         ep:'Wǒ xǐhuan píngguǒ.'},
+  {h:'看', p:'kàn',     m:'to look, to watch',  e:'我看电视。',           ep:'Wǒ kàn diànshì.'},
+  {h:'听', p:'tīng',    m:'to listen',          e:'我听音乐。',           ep:'Wǒ tīng yīnyuè.'},
+  {h:'说', p:'shuō',    m:'to speak, to say',   e:'我说汉语。',           ep:'Wǒ shuō Hànyǔ.'},
+  {h:'读', p:'dú',      m:'to read',            e:'我读书。',             ep:'Wǒ dú shū.'},
+  {h:'写', p:'xiě',     m:'to write',           e:'我写汉字。',           ep:'Wǒ xiě Hànzì.'},
+  {h:'买', p:'mǎi',     m:'to buy',             e:'我买东西。',           ep:'Wǒ mǎi dōngxi.'},
+  {h:'回', p:'huí',     m:'to return, go back', e:'我回家。',             ep:'Wǒ huí jiā.'},
+  {h:'做', p:'zuò',     m:'to do, to make',     e:'你做什么？',           ep:'Nǐ zuò shénme?'},
+  {h:'叫', p:'jiào',    m:'to be called',       e:'我叫小明。',           ep:'Wǒ jiào Xiǎomíng.'},
+  {h:'名', p:'míng',    m:'name',               e:'你叫什么名字？',       ep:'Nǐ jiào shénme míngzi?'},
+  {h:'字', p:'zì',      m:'character, word',    e:'我会写汉字。',         ep:'Wǒ huì xiě Hànzì.'},
+  {h:'岁', p:'suì',     m:'year (of age)',      e:'我二十岁。',           ep:'Wǒ èrshí suì.'},
+  {h:'几', p:'jǐ',      m:'how many',           e:'你家有几个人？',       ep:'Nǐ jiā yǒu jǐ gè rén?'},
+  {h:'多', p:'duō',     m:'many, much; more',   e:'这个多少钱？',         ep:'Zhège duōshao qián?'},
+  {h:'很', p:'hěn',     m:'very',               e:'我很好。',             ep:'Wǒ hěn hǎo.'},
+
+  /* ---- 新增 21 个（已去重） ---- */
+  {h:'少', p:'shǎo',    m:'few, little',        e:'我的钱很少。',         ep:'Wǒ de qián hěn shǎo.'},
+  {h:'习', p:'xí',      m:'to practice, study', e:'我学习汉语。',         ep:'Wǒ xuéxí Hànyǔ.'},
+  {h:'文', p:'wén',     m:'writing, language',  e:'我学中文。',           ep:'Wǒ xué Zhōngwén.'},
+  {h:'汉', p:'hàn',     m:'Han, Chinese',       e:'我学汉语。',           ep:'Wǒ xué Hànyǔ.'},
+  {h:'语', p:'yǔ',      m:'language',           e:'汉语很难。',           ep:'Hànyǔ hěn nán.'},
+  {h:'话', p:'huà',     m:'words, speech',      e:'我听不懂他的话。',     ep:'Wǒ tīngbudǒng tā de huà.'},
+  {h:'月', p:'yuè',     m:'month, moon',        e:'今天是三月。',         ep:'Jīntiān shì sān yuè.'},
+  {h:'日', p:'rì',      m:'day, sun',           e:'今天是星期日。',       ep:'Jīntiān shì xīngqīrì.'},
+  {h:'星', p:'xīng',    m:'star',               e:'星期一我上课。',       ep:'Xīngqīyī wǒ shàngkè.'},
+  {h:'期', p:'qī',      m:'period, time',       e:'星期五我休息。',       ep:'Xīngqīwǔ wǒ xiūxi.'},
+  {h:'东', p:'dōng',    m:'east',               e:'东边有一个商店。',     ep:'Dōngbian yǒu yí gè shāngdiàn.'},
+  {h:'西', p:'xī',      m:'west',               e:'西边是医院。',         ep:'Xībian shì yīyuàn.'},
+  {h:'想', p:'xiǎng',   m:'to think, to want',  e:'我想回家。',           ep:'Wǒ xiǎng huí jiā.'},
+  {h:'要', p:'yào',     m:'to want, need',      e:'我要喝水。',           ep:'Wǒ yào hē shuǐ.'},
+  {h:'吃', p:'chī',     m:'to eat',             e:'我吃饭。',             ep:'Wǒ chīfàn.'},
+  {h:'喝', p:'hē',      m:'to drink',           e:'我喝茶。',             ep:'Wǒ hē chá.'},
+  {h:'工', p:'gōng',    m:'work, worker',       e:'我爸爸是工人。',       ep:'Wǒ bàba shì gōngrén.'},
+  {h:'作', p:'zuò',     m:'to do, to make',     e:'我在工作。',           ep:'Wǒ zài gōngzuò.'},
+  {h:'心', p:'xīn',     m:'heart, mind',        e:'我很开心。',           ep:'Wǒ hěn kāixīn.'},
+  {h:'见', p:'jiàn',    m:'to see, to meet',    e:'明天见！',             ep:'Míngtiān jiàn!'},
+  {h:'山', p:'shān',    m:'mountain',           e:'那座山很高。',         ep:'Nà zuò shān hěn gāo.'}
+];
+
+/* ================= 状态 ================= */
+const $ = id => document.getElementById(id);
+const cardEl = $('card');
+let order = DATA.map((_, i) => i);
+let idx = 0;
+let flipped = false;
+let lastSwipe = 0;
+
+/* ================= 洗牌函数 ================= */
+function shuffleArray(a){
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+/* 启动时先打乱一次 */
+shuffleArray(order);
+
+/* ================= 渲染 ================= */
+function render(){
+  const d = DATA[order[idx]];
+  $('hanzi').textContent      = d.h;
+  $('backHanzi').textContent  = d.h;
+  $('backPinyin').textContent = d.p;
+  $('meaning').textContent    = d.m;
+  $('exZh').textContent       = d.e;
+  $('exPy').textContent       = d.ep;
+  $('counter').textContent    = (idx + 1) + ' / ' + DATA.length;
+  $('bar').style.width        = ((idx + 1) / DATA.length * 100) + '%';
+  cardEl.classList.remove('flipped');
+  flipped = false;
+}
+
+/* ================= 操作 ================= */
+function next(){ idx = (idx + 1) % DATA.length; render(); }
+function prev(){ idx = (idx - 1 + DATA.length) % DATA.length; render(); }
+function toggleFlip(){
+  flipped = !flipped;
+  cardEl.classList.toggle('flipped', flipped);
+}
+
+cardEl.addEventListener('click', () => {
+  if (Date.now() - lastSwipe < 350) return;
+  toggleFlip();
+});
+$('nextBtn').addEventListener('click', next);
+$('prevBtn').addEventListener('click', prev);
+$('flipBtn').addEventListener('click', toggleFlip);
+
+/* 手动打乱 */
+$('shuffleBtn').addEventListener('click', () => {
+  shuffleArray(order);
+  idx = 0;
+  render();
+});
+
+/* 朗读 */
+function speak(){
+  if (!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(DATA[order[idx]].h);
+  u.lang = 'zh-CN';
+  u.rate = 0.75;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+$('soundBtn').addEventListener('click', speak);
+
+/* 键盘 */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight'){ next(); }
+  else if (e.key === 'ArrowLeft'){ prev(); }
+  else if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleFlip(); }
+});
+
+/* 手机左右滑动 */
+cardEl.addEventListener('touchstart', e => {
+  cardEl._startX = e.touches[0].clientX;
+}, {passive:true});
+
+cardEl.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - cardEl._startX;
+  if (Math.abs(dx) > 60){
+    lastSwipe = Date.now();
+    dx < 0 ? next() : prev();
+  }
+}, {passive:true});
+
+/* 启动 */
+render();
+</script>
+</body>
+</html>
